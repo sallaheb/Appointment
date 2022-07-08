@@ -2,6 +2,7 @@ package com.nology;
 
 import org.junit.Test;
 import java.time.LocalTime;
+import java.util.ArrayList;
 
 import static org.junit.Assert.*;
 
@@ -9,11 +10,10 @@ public class PersonTest {
 
     @Test
     public void checkAppointmentStartDateIsBeforeEndDate() {
-        Person adam = new Person("Adam",new Calender(),new Appointment());
+        Person adam = new Person("Adam",new Calender(),new Appointment(),new ArrayList<>());
         adam.createDailyBounds(9,00, 18, 0);
 
        Appointment adamAppt = adam.scheduleAnAppointmentWithinDailyBound(15,0);
-
 
         assertTrue(adamAppt.getStartTime().isBefore(adamAppt.getEndTime()));
 
@@ -21,7 +21,7 @@ public class PersonTest {
 
     @Test
     public void expectedEndTimeAndSetDuration(){
-        Person adam = new Person("Adam",new Calender(),new Appointment());
+        Person adam = new Person("Adam",new Calender(),new Appointment(),new ArrayList<>());
         adam.createDailyBounds(9,00, 18, 0);
 
         Appointment adamAppt = adam.scheduleAnAppointmentWithinDailyBound(15,0);
@@ -35,7 +35,7 @@ public class PersonTest {
 
     @Test
     public void checkAppointmentIsWithinBound() {
-        Person adam = new Person("Adam",new Calender(),new Appointment());
+        Person adam = new Person("Adam",new Calender(),new Appointment(),new ArrayList<>());
         adam.createDailyBounds(9,00, 18, 0);
         adam.scheduleAnAppointmentWithinDailyBound(15,0);
 
@@ -46,7 +46,7 @@ public class PersonTest {
 
     @Test
     public void checkIsWithinSlots() {
-        Person adam = new Person("Adam",new Calender(),new Appointment());
+        Person adam = new Person("Adam",new Calender(),new Appointment(),new ArrayList<>());
         adam.createDailyBounds(9,00, 18, 0);
         adam.scheduleAnAppointmentWithinDailyBound(15,0);
 
@@ -58,17 +58,17 @@ public class PersonTest {
 
     @Test
     public void isAppointmentRemovedFromAvailableSlots(){
-        Person adam = new Person("Adam",new Calender(),new Appointment());
+        Person adam = new Person("Adam",new Calender(),new Appointment(),new ArrayList<>());
         adam.createDailyBounds(9,00, 18, 0);
         adam.scheduleAnAppointmentWithinDailyBound(15,0);
 
 
-        assertTrue((adam.checkIsRemovedAfter()));
+        assertTrue((adam.checkWithinAvailableSlots()));
     }
 
     @Test
     public void checkAvailableSlotsIsUpdated() {
-        Person adam = new Person("Adam",new Calender(),new Appointment());
+        Person adam = new Person("Adam",new Calender(),new Appointment(),new ArrayList<>());
         adam.createDailyBounds(9,00, 18, 0);
         adam.getTimeSlots();
 
@@ -76,9 +76,7 @@ public class PersonTest {
         int BeforeAppointmentBooking = adam.getAvailableTimeSlots().size();
         adam.scheduleAnAppointmentWithinDailyBound(15,0);
         //method call will create a duplicate so subtract from expected value : 17.
-        // This method was also called within the above scheduleAnAppointment method above
         int afterAppointmentBooking = adam.getAvailableTimeSlots().size()-17;
-
 
         assertEquals(BeforeAppointmentBooking,18);
         assertEquals(afterAppointmentBooking,17);
@@ -87,7 +85,7 @@ public class PersonTest {
     @Test
     public void checkListIsUpdatedForMatchClassFunctionality() {
 
-        Person adam = new Person("Adam",new Calender(),new Appointment());
+        Person adam = new Person("Adam",new Calender(),new Appointment(),new ArrayList<>());
         adam.createDailyBounds(9,00, 18, 0);
         adam.scheduleAnAppointmentWithinDailyBound(15,0);
 
@@ -96,15 +94,5 @@ public class PersonTest {
         assertTrue(ListIsUpdated);
     }
 
-    @Test
-    public void checkAvailabilityIsUpdatedForMatchClassFunctionality() {
-        Person adam = new Person("Adam",new Calender(),new Appointment());
-        adam.createDailyBounds(9,00, 18, 0);
-        adam.scheduleAnAppointmentWithinDailyBound(15,0);
-
-        Boolean AvailabilityIsUpdated =  adam.checkListIsUpdatedForMatchClassFunctionality();
-
-        assertTrue(AvailabilityIsUpdated);
-    }
 
 }

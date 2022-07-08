@@ -8,13 +8,15 @@ public class Person {
     private String name;
     private Calender calender;
     private Appointment appointment;
+    private List<Appointment> appointments = new ArrayList<>();
     private List<String[]> timeSlots = new ArrayList<>();
     private List<String[]> listOfAppointments = new ArrayList<>();
 
-    public Person(String name, Calender calender, Appointment appointment ) {
+    public Person(String name, Calender calender, Appointment appointment,List<Appointment> appointments  ) {
         this.name = name;
         this.calender = calender;
         this.appointment = appointment;
+        this.appointments= appointments;
 
     }
 
@@ -33,11 +35,11 @@ public class Person {
         appointment.setEndTime();
          checkWithinBound();
          checkIsWithinSlots();
+         appointments.add(appointment);
+         removeAllItemsInAppointments();
+         getListOfAppointments();
          checkWithinAvailableSlots();
-        calender.addAppointment(appointment);
         checkListIsUpdatedForMatchClassFunctionality();
-        checkAvailabilityIsUpdatedForMatchClassFunctionality();
-
         return appointment;
     }
 
@@ -52,7 +54,20 @@ public class Person {
 
     }
 
-       public Boolean checkIsWithinSlots() {
+    public Boolean checkWithinBoundForList(List<Appointment> appointmentList) {
+        for (Appointment appointment: appointmentList) {
+            if (appointment.getStartTime().isBefore(calender.getLocalTimeBoundStart())) {
+                throw new RuntimeException("Appointment is set outside of daily bounds; Please review");
+            } else if (appointment.getEndTime().isAfter(calender.getLocalTimeBoundEnd())) {
+                throw new RuntimeException("Appointment is set outside of daily bounds; Please review");
+            } else {
+                return true;
+            }
+        }
+        return true;
+    }
+
+    public Boolean checkIsWithinSlots() {
         List<String[]>timeSlots = getTimeSlots();
 
         String[] newAppointment = new String[] {String.valueOf(appointment.getStartTime()), String.valueOf(appointment.getEndTime())};
@@ -63,8 +78,21 @@ public class Person {
                }
            }
            return false;
-       }
+    }
 
+    public Boolean checkIsWithinSlotsForMultipleAppointments(List<Appointment> appointmentList) {
+        for (Appointment appointment: appointmentList) {
+            List<String[]>timeSlots = getTimeSlots();
+            String[] newAppointment = new String[] {String.valueOf(appointment.getStartTime()), String.valueOf(appointment.getEndTime())};
+
+            for (String[] slot: timeSlots) {
+                if(Arrays.equals(slot, newAppointment)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     public Boolean checkWithinAvailableSlots() {
         List<String[]>timeSlots = getAvailableTimeSlots();
@@ -72,29 +100,32 @@ public class Person {
         String[] newAppointment = new String[] {String.valueOf(appointment.getStartTime()), String.valueOf(appointment.getEndTime())};
 
         for (String[] slot: timeSlots) {
-            if(Arrays.equals(slot, newAppointment)){
+            if(!Arrays.equals(slot, newAppointment)){
                 return true;
             }
         }
         throw new RuntimeException("appointment is not within Available slots");
     }
 
-    public Boolean checkIsRemovedAfter() {
-        List<String[]>timeSlots = getAvailableTimeSlots();
+    public Boolean checkWithinAvailableSlotsForMultipleApp(List<Appointment> appointmentList) {
+        for (Appointment appointment: appointmentList) {
+            List<String[]>timeSlots = getAvailableTimeSlots();
+            String[] newAppointment = new String[] {String.valueOf(appointment.getStartTime()), String.valueOf(appointment.getEndTime())};
 
-        String[] newAppointment = new String[] {String.valueOf(appointment.getStartTime()), String.valueOf(appointment.getEndTime())};
-
-        for (String[] slot: timeSlots) {
-            if(Arrays.equals(slot, newAppointment)){
-                return false;
+            for (String[] slot: timeSlots) {
+                if(!Arrays.equals(slot, newAppointment)){
+                    return true;
+                }
             }
         }
-        return true;
+
+        throw new RuntimeException("appointment is not within Available slots");
     }
+
 
     public Boolean checkListIsUpdatedForMatchClassFunctionality(){
         String[] newAppointment = new String[] {String.valueOf(appointment.getStartTime()), String.valueOf(appointment.getEndTime())};
-        List<String[]>timeSlots = getListOfAppointments();
+        List<String[]>timeSlots = new ArrayList<>(getListOfAppointments());
 
         for (String[] slot: timeSlots) {
             if(Arrays.equals(slot, newAppointment)){
@@ -104,15 +135,18 @@ public class Person {
         return false;
     }
 
-    public Boolean checkAvailabilityIsUpdatedForMatchClassFunctionality() {
-        String[] newAppointment = new String[] {String.valueOf(appointment.getStartTime()), String.valueOf(appointment.getEndTime())};
-        List<String[]>Slots = getAvailableTimeSlots();
-        for (String[] item: Slots) {
-            if(!Arrays.equals(item, newAppointment)){
-                return true;
-            }
-        }
+    public Boolean checkListIsUpdatedForMatchClassFunctionalityForMultipleApp(List<Appointment> appointmentList){
+        for (Appointment appointment: appointmentList) {
+            String[] newAppointment = new String[] {String.valueOf(appointment.getStartTime()), String.valueOf(appointment.getEndTime())};
+            List<String[]>timeSlots = new ArrayList<>(getListOfAppointments());
 
+            for (String[] slot: timeSlots) {
+                if(Arrays.equals(slot, newAppointment)){
+                    return true;
+                }
+            }
+
+        }
         return false;
     }
 
@@ -140,9 +174,17 @@ public class Person {
         return timeSlots;
     }
 
-    public List<Appointment> getAppointments(){
-      return   calender.getAppointments();
+    public List<Appointment> getAppointments() {
+        return appointments.stream()
+                .sorted(Comparator.comparing(Appointment::getStartTime)).collect(Collectors.toList());
     }
+
+    public void removeAllItemsInAppointments(){
+        for (String[] appointment: listOfAppointments) {
+            listOfAppointments.remove(appointment);
+        }
+    }
+
 
     public String getName() {
         return name;
@@ -150,8 +192,7 @@ public class Person {
 
     public List<String[]> getListOfAppointments(){
         // ONLY created to avoid threading issues : decided to create a new String[] to resolve
-
-        List<Appointment> appointments = calender.getAppointments();
+//        List<Appointment> appointments = calender.getAppointments();
 
         for (int i = 0; i < appointments.size(); i++) {
             LocalTime StartTime = appointments.get(i).getStartTime();
@@ -167,6 +208,7 @@ public class Person {
     public List<String[]> getAvailableTimeSlots() {
 
         List<String[]> availableSlots = new ArrayList<>(timeSlots);
+
         for (String[] timeSlot1 : listOfAppointments) {
             for (String[] timeSlot2 : timeSlots) {
                 if (Arrays.equals(timeSlot1, timeSlot2)) {

@@ -42,7 +42,7 @@ public class Appointment {
 
     @Override
     public String toString() {
-        return "Appointment=[" + startTime + ","+ " " + endTime + ']';
+        return "Appointment="+"["+startTime+","+" "+endTime+"]";
     }
 
 

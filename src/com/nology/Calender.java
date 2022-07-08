@@ -3,9 +3,10 @@ package com.nology;
 
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Calender {
-    private final List<Appointment> appointments = new ArrayList<>();
+    private List<Appointment> appointments = new ArrayList<>();
     private LocalTime localTimeBoundStart;
     private LocalTime localTimeBoundEnd;
     private LocalTime[] dailyBound = new LocalTime[]{};
@@ -42,9 +43,12 @@ public class Calender {
     }
 
     public List<Appointment> getAppointments() {
-        Comparator<Appointment> sorted = Comparator.comparing(Appointment::getStartTime).thenComparing(Appointment::getEndTime);
-        appointments.sort(sorted);
         return appointments;
+    }
+
+    public List<Appointment> getSortedAppointments() {
+        return appointments.stream()
+                .sorted(Comparator.comparing(Appointment::getStartTime)).collect(Collectors.toList());
     }
 
     public void setDailyBound() {
@@ -55,10 +59,8 @@ public class Calender {
         return "dailyBound=" + Arrays.toString(dailyBound);
     }
 
-    public Appointment addAppointment(Appointment appointment) {
-        appointments.add(appointment);
-        int indexOfLastAdded = appointments.size()-1;
-        return appointments.get(indexOfLastAdded);
+    public void addAllAppointments(List<Appointment> appointment) {
+        appointments.addAll(appointment);
     }
 
 
